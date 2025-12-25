@@ -1,12 +1,7 @@
 import chess
 import random
 
-board = chess.Board()
-print(board)
-
-while not board.is_game_over():
-
-    # --- White to move: Human ---
+def human_move():
     while True:
         san_move = input("Enter your move (SAN): ")
 
@@ -23,21 +18,48 @@ while not board.is_game_over():
         except ValueError:
             print("Illegal move")
 
-    if board.is_game_over():
-        break
-
-    # --- Black to move: Random AI ---
+def random_machine_move():
     legal_moves = list(board.legal_moves)
     bot_move = random.choice(legal_moves)
 
-    # Convert to SAN BEFORE pushing
+    # Convert to SAN for display
     bot_san = board.san(bot_move)
-
     board.push(bot_move)
+    return bot_san
 
-    print("\n" + str(board) + "\n")
-    print("\nBlack plays:", bot_san, "\n")
+# Initialize the chess board
+board = chess.Board()
+print(board)
 
+white_or_black = input("Choose your side (white/black): ").strip().lower()
+if white_or_black == "white":
+    while not board.is_game_over():
 
+        # --- White to move: Human ---
+        human_move()
 
-print("Game over:", board.result())
+        if board.is_game_over():
+            break
+
+        # --- Black to move: Random AI ---
+        machine_move = random_machine_move()
+
+        print("\n" + str(board) + "\n")
+        print("\nBlack plays:", machine_move, "\n")
+
+    print("Game over:", board.result())
+else:
+    while not board.is_game_over():
+        # --- Black to move: Random AI ---
+        machine_move = random_machine_move()
+
+        print("\n" + str(board) + "\n")
+        print("\nBlack plays:", machine_move, "\n")
+
+        if board.is_game_over():
+            break
+
+        # --- White to move: Human ---
+        human_move()
+    
+    print("Game over:", board.result())
