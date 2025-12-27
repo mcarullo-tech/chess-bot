@@ -1,6 +1,18 @@
 import chess
 import random
 
+UNICODE_PIECES = {
+    "P": "♙", "N": "♘", "B": "♗", "R": "♖", "Q": "♕", "K": "♔",
+    "p": "♟", "n": "♞", "b": "♝", "r": "♜", "q": "♛", "k": "♚"
+}
+
+def print_board_unicode(board):
+    board_str = str(board)
+    for ascii_piece, uni_piece in UNICODE_PIECES.items():
+        board_str = board_str.replace(ascii_piece, uni_piece)
+    print(board_str)
+
+
 # PERFT function to count nodes at a given depth
 def perft(board, depth):
     if depth == 0:
@@ -63,7 +75,7 @@ def simple_machine_move():
         if evaluation > best_evaluation:
             best_evaluation = evaluation
             best_move = move
-            
+
     # Get SAN BEFORE pushing
     san = board.san(best_move)
     board.push(best_move)
@@ -86,9 +98,11 @@ def material_evaluation(board):
 
     return white_material - black_material
 
+
+
 # Initialize the chess board
 board = chess.Board()
-print(board)
+print_board_unicode(board)
 
 white_or_black = input("Choose your side (white/black): ").strip().lower()
 if white_or_black == "white":
@@ -102,7 +116,7 @@ if white_or_black == "white":
         # Black to move: Simple AI
         machine_move = simple_machine_move()
 
-        print("\n" + str(board) + "\n")
+        print_board_unicode(board)
         print("\nBlack plays:", machine_move, "\n")
 
     print("Game over:", board.result())
