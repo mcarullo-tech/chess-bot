@@ -1,6 +1,13 @@
 import chess
 import random
 
+from piece_square_tables import (
+    PIECE_SQUARE_TABLES,
+    KING_MIDDLE_TABLE,
+    KING_END_TABLE
+)
+
+
 UNICODE_PIECES = {
     "P": "♙", "N": "♘", "B": "♗", "R": "♖", "Q": "♕", "K": "♔",
     "p": "♟", "n": "♞", "b": "♝", "r": "♜", "q": "♛", "k": "♚"
@@ -24,6 +31,7 @@ def perft(board, depth):
         nodes += perft(board, depth - 1)
         board.pop()
     return nodes
+
 # Run PERFT test
 def run_perft(depth):
     print(f"\nRunning PERFT to depth {depth}...\n")
@@ -81,23 +89,57 @@ def simple_machine_move():
     board.push(best_move)
     return san
 
+# Determine if we are in an endgame
+def is_endgame(board):
+    pieces = list(board.piece_map().values())
+
+    # Condition A: no queens on the board
+    if not any(p.piece_type == chess.QUEEN for p in pieces):
+        return True
+
+    # Condition B: no rooks and at most two minor pieces total
+    minor_count = sum(p.piece_type in (chess.BISHOP, chess.KNIGHT) for p in pieces)
+    rook_count = sum(p.piece_type == chess.ROOK for p in pieces)
+
+    if rook_count == 0 and minor_count <= 2:
+        return True
+
+    return False
+
 
 # Simple material evaluation function
 def material_evaluation(board):
+    endgame = is_endgame(board)
+    score = 0
+
     piece_values = {
-        chess.PAWN: 1,
-        chess.KNIGHT: 3,
-        chess.BISHOP: 3,
-        chess.ROOK: 5,
-        chess.QUEEN: 9,
-        chess.KING: 0
+        chess.PAWN: 100,
+        chess.KNIGHT: 320,
+        chess.BISHOP: 330,
+        chess.ROOK: 500,
+        chess.QUEEN: 900,
+        chess.KING: 20000
     }
 
-    white_material = sum(piece_values[piece.piece_type] for piece in board.piece_map().values() if piece.color == chess.WHITE)
-    black_material = sum(piece_values[piece.piece_type] for piece in board.piece_map().values() if piece.color == chess.BLACK)
+    for square, piece in board.piece_map().items():
+        base_value = piece_values[piece.piece_type]
 
-    return white_material - black_material
+        # Select correct PST
+        if piece.piece_type == chess.KING:
+            pst = KING_END_TABLE if endgame else KING_MIDDLE_TABLE
+        else:
+            pst = PIECE_SQUARE_TABLES[piece.piece_type]
 
+        # Mirror for black
+        if piece.color == chess.WHITE:
+            pst_value = pst[square]
+            score += base_value + pst_value
+        else:
+            mirrored = chess.square_mirror(square)
+            pst_value = pst[mirrored]
+            score -= base_value + pst_value
+
+    return score
 
 
 # Initialize the chess board
