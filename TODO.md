@@ -1,11 +1,15 @@
 # Chess Engine To-Do
 
-## Core Engine Functionality
-- Add minimax search
-- Add alpha beta pruning
-- Add checkmate scoring
-- Add king safety evaluation
-- Add piece square tables
+# Improve Evaluation
+- Mobility of pieces: count how many legal moves there are; more is better
+- Piece square tables: knights are better in the center and worse on the edges
+- King safety: keep king away from open files and enemy pieces
+- Pawn structures: avoid doubled and isolated pawns, reward connected pawns and passed pawns
+- Checkmate scoring: avoid walking into checkmate
+
+# Improve Search
+- Minimax search
+- Alpha beta pruning
 
 ## Future Improvements
 - Improved UI
