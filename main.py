@@ -1,6 +1,7 @@
 import chess
 import random
 
+# PERFT function to count nodes at a given depth
 def perft(board, depth):
     if depth == 0:
         return 1
@@ -11,12 +12,13 @@ def perft(board, depth):
         nodes += perft(board, depth - 1)
         board.pop()
     return nodes
-
+# Run PERFT test
 def run_perft(depth):
     print(f"\nRunning PERFT to depth {depth}...\n")
     result = perft(board, depth)
     print(f"Nodes: {result}\n")
 
+# Human player move input and validation
 def human_move():
     while True:
         san_move = input("Enter your move (SAN): ")
@@ -44,13 +46,49 @@ def random_machine_move():
     board.push(bot_move)
     return bot_san
 
+# SimpleFish: Chess bot which plays the move that maximizes material advantage
+def simple_machine_move():
+    best_move = None
+    best_evaluation = -float('inf')
+
+    for move in board.legal_moves:
+        board.push(move)
+        evaluation = material_evaluation(board)
+        board.pop()
+
+        # Flip evaluation if Black is moving
+        if board.turn == chess.BLACK:
+            evaluation = -evaluation
+
+        if evaluation > best_evaluation:
+            best_evaluation = evaluation
+            best_move = move
+            
+    # Get SAN BEFORE pushing
+    san = board.san(best_move)
+    board.push(best_move)
+    return san
+
+
+# Simple material evaluation function
+def material_evaluation(board):
+    piece_values = {
+        chess.PAWN: 1,
+        chess.KNIGHT: 3,
+        chess.BISHOP: 3,
+        chess.ROOK: 5,
+        chess.QUEEN: 9,
+        chess.KING: 0
+    }
+
+    white_material = sum(piece_values[piece.piece_type] for piece in board.piece_map().values() if piece.color == chess.WHITE)
+    black_material = sum(piece_values[piece.piece_type] for piece in board.piece_map().values() if piece.color == chess.BLACK)
+
+    return white_material - black_material
+
 # Initialize the chess board
 board = chess.Board()
 print(board)
-
-# Run PERFT test at depth 1
-run_perft(3)
-
 
 white_or_black = input("Choose your side (white/black): ").strip().lower()
 if white_or_black == "white":
@@ -61,8 +99,8 @@ if white_or_black == "white":
         if board.is_game_over():
             break
 
-        # Black to move: Random AI
-        machine_move = random_machine_move()
+        # Black to move: Simple AI
+        machine_move = simple_machine_move()
 
         print("\n" + str(board) + "\n")
         print("\nBlack plays:", machine_move, "\n")
@@ -70,11 +108,11 @@ if white_or_black == "white":
     print("Game over:", board.result())
 else:
     while not board.is_game_over():
-        # White to move: Random AI
-        machine_move = random_machine_move()
+        # White to move: Simple AI
+        machine_move = simple_machine_move()
 
         print("\n" + str(board) + "\n")
-        print("\nBlack plays:", machine_move, "\n")
+        print("\nWhite plays:", machine_move, "\n")
 
         if board.is_game_over():
             break
