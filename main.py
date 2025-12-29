@@ -107,7 +107,7 @@ def is_endgame(board):
     return False
 
 
-# Simple material evaluation function
+# Material evaluation function with piece-square tables
 def material_evaluation(board):
     endgame = is_endgame(board)
     score = 0
@@ -121,7 +121,9 @@ def material_evaluation(board):
         chess.KING: 20000
     }
 
+    # Loop through every occupied square on the board
     for square, piece in board.piece_map().items():
+        # Store the material value of the piece in "base value"
         base_value = piece_values[piece.piece_type]
 
         # Select correct PST
@@ -130,15 +132,17 @@ def material_evaluation(board):
         else:
             pst = PIECE_SQUARE_TABLES[piece.piece_type]
 
-        # Mirror for black
+        # Apply PST value to base material value
         if piece.color == chess.WHITE:
             pst_value = pst[square]
             score += base_value + pst_value
+        # Mirror for black
         else:
             mirrored = chess.square_mirror(square)
             pst_value = pst[mirrored]
             score -= base_value + pst_value
 
+    # Score will be positive if white is better, and negative if black is better
     return score
 
 
