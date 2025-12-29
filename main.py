@@ -56,38 +56,35 @@ def human_move():
         except ValueError:
             print("Illegal move")
 
-# RandomFish: Chess bot which simply plays random legal moves
-def random_machine_move():
-    legal_moves = list(board.legal_moves)
-    bot_move = random.choice(legal_moves)
 
-    # Convert to SAN for display
-    bot_san = board.san(bot_move)
-    board.push(bot_move)
-    return bot_san
-
-# SimpleFish: Chess bot which plays the move that maximizes material advantage
-def simple_machine_move():
+# BetterFish: Chess bot using minimax with alpha-beta pruning
+def engine_move(depth):
     best_move = None
-    best_evaluation = -float('inf')
+
+    # Decide if we're maximizing or minimizing based on side to move
+    if board.turn == chess.WHITE:
+        maximizing_player = True
+        best_eval = -float('inf')
+    else:
+        maximizing_player = False
+        best_eval = float('inf')
 
     for move in board.legal_moves:
         board.push(move)
-        evaluation = material_evaluation(board)
+        eval = minimax(board, depth - 1, -float('inf'), float('inf'), not maximizing_player)
         board.pop()
 
-        # Flip evaluation if Black is moving
-        if board.turn == chess.BLACK:
-            evaluation = -evaluation
-
-        if evaluation > best_evaluation:
-            best_evaluation = evaluation
+        if maximizing_player and eval > best_eval:
+            best_eval = eval
+            best_move = move
+        elif not maximizing_player and eval < best_eval:
+            best_eval = eval
             best_move = move
 
-    # Get SAN BEFORE pushing
     san = board.san(best_move)
     board.push(best_move)
     return san
+
 
 # Determine if we are in an endgame
 def is_endgame(board):
@@ -145,6 +142,36 @@ def material_evaluation(board):
     # Score will be positive if white is better, and negative if black is better
     return score
 
+# Improve searching via minimax function with alpha-beta pruning
+def minimax(board, depth, alpha, beta, maximizing_player):
+    # Base case: depth reached or game over
+    if depth == 0 or board.is_game_over():
+        return material_evaluation(board)
+
+    if maximizing_player:
+        value = -float('inf')
+        for move in board.legal_moves:
+            board.push(move)
+            value = max(value, minimax(board, depth - 1, alpha, beta, False))
+            board.pop()
+
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break  # Beta cutoff
+        return value
+
+    else:
+        value = float('inf')
+        for move in board.legal_moves:
+            board.push(move)
+            value = min(value, minimax(board, depth - 1, alpha, beta, True))
+            board.pop()
+
+            beta = min(beta, value)
+            if beta <= alpha:
+                break  # Alpha cutoff
+        return value
+
 
 # Initialize the chess board
 board = chess.Board()
@@ -159,8 +186,8 @@ if white_or_black == "white":
         if board.is_game_over():
             break
 
-        # Black to move: Simple AI
-        machine_move = simple_machine_move()
+        # Black to move: Engine with depth=3
+        machine_move = engine_move(3)
 
         print_board_unicode(board)
         print("\nBlack plays:", machine_move, "\n")
@@ -168,8 +195,8 @@ if white_or_black == "white":
     print("Game over:", board.result())
 else:
     while not board.is_game_over():
-        # White to move: Simple AI
-        machine_move = simple_machine_move()
+        # White to move: Engine with depth=3
+        machine_move = engine_move(3)
 
         print("\n" + str(board) + "\n")
         print("\nWhite plays:", machine_move, "\n")
